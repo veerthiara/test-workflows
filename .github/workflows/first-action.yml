@@ -1,5 +1,10 @@
 name: First Workflow
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+  
 jobs:
   first-job:
     runs-on: ubuntu-latest
@@ -10,3 +15,36 @@ jobs:
         run: echo "Done - Bye!"
       - name: Print new step
         run: echo "this is brand new step"
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      file-name: ${{ steps.publish-filename.outputs.veerfilename }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install dependencies
+        run: npm install
+      - name: Build
+        run: npm run build
+      - name: Publish js filename
+        id: publish-filename
+        run:  find dist -type f -name '*.js' -execdir echo 'veerfilename={}' >> $GITHUB_Output  \;
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifact-veer
+          path: |
+            build/**
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download production artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifact-veer
+          path: build
+      - name: Output filename
+        run: echo "The filename is ${{ needs.build.outputs.file-name }}"
+      - name: Deploy to production
+        run: echo "Deploying to production"
