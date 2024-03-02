@@ -30,7 +30,7 @@ jobs:
         with:
           name: build-artifact-veer
           path: |
-            build/**
+            dist/**
   deploy:
     runs-on: ubuntu-latest
     needs: build
@@ -39,8 +39,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-artifact-veer
-          path: build
+          path: dist
       - name:  Running node project
         run: |
           echo "Running node project"
-          ls -l build
+          ls -l dist
+          
