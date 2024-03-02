@@ -6,29 +6,25 @@ on:
   workflow_dispatch:
   
 jobs:
-  first-job:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Print hellow
-        run: echo "Hello World"
-      - name: Print bye
-        run: echo "Done - Bye!"
-      - name: Print new step
-        run: echo "this is brand new step"
   build:
     runs-on: ubuntu-latest
-    outputs:
-      file-name: ${{ steps.publish-filename.outputs.veerfilename }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20.10.0'
+      - name: cache node modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: node-${{ hashFiles('**/package-lock.json') }}
       - name: Install dependencies
+        if: steps.cache.outputs.cache-hit != 'true'
         run: npm install
       - name: Build
         run: npm run build
-      - name: Publish js filename
-        id: publish-filename
-        run:  find dist -type f -name '*.js' -execdir echo 'veerfilename={}' >> $GITHUB_Output  \;
       - name: Archive production artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -44,7 +40,7 @@ jobs:
         with:
           name: build-artifact-veer
           path: build
-      - name: Output filename
-        run: echo "The filename is ${{ needs.build.outputs.file-name }}"
-      - name: Deploy to production
-        run: echo "Deploying to production"
+      - name:  Running node project
+        run: |
+          echo "Running node project"
+          ls -l build
