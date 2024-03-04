@@ -3,7 +3,7 @@ name: Build and Push to AWS ECR
 on:
   push:
     branches:
-      - develop  # or any branch you want to trigger this workflow
+      - develop
 
 jobs:
   build-and-push:
