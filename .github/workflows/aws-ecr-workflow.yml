@@ -5,8 +5,12 @@ on:
     branches:
       - develop
 env:
-  ECR_REPOSITORY: test-workflows
+  ECR_REPOSITORY: veer-test-workflow-containers
   STAGE: develop
+  AWS_REGION: us-east-1 # Example AWS region
+  ECS_CLUSTER_NAME: veer-deployment-homeporter-test # Your ECS Cluster Name
+  ECS_SERVICE_NAME: veer-web-app-github-actions-service # Your ECS Service Name
+  TASK_DEFINITION: task-definition.json # Your task definition file
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -33,6 +37,21 @@ jobs:
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
-    - name: Output image name
-      run: echo "Image name is $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+    - name: Render Amazon ECS task definition
+      id: render-web-container
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition.json
+        container-name: web
+        image: ${{env.ECR_REPOSITORY}}-${{env.STAGE}}-${{ github.sha }}
+        environment-variables: "LOG_LEVEL=info"
+    - name: Register ECS task definition
+      run: |
+        aws ecs register-task-definition \
+        --cli-input-json file://$TASK_DEFINITION
+    - name: Deploy to Amazon ECS
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.render-web-container.outputs.task-definition }}
+        service: ${{ env.ECS_SERVICE_NAME }}
+        cluster: ${{ env.ECS_CLUSTER_NAME }}

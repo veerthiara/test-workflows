@@ -1,0 +1,25 @@
+{
+    "family": "veer-web-app-github-actions",
+    "containerDefinitions": [
+      {
+        "name": "test-app-for-task-definiton",
+        "image": "placeholder-for-your-image-uri",
+        "cpu": 256,
+        "memory": 512,
+        "essential": true,
+        "portMappings": [
+          {
+            "containerPort": 8888,
+            "hostPort": 80
+          }
+        ]
+      }
+    ],
+    "requiresCompatibilities": ["FARGATE"],
+    "networkMode": "awsvpc",
+    "cpu": "256",
+    "memory": "512",
+    "executionRoleArn": "arn:aws:iam::your-account-id:role/your-execution-role",
+    "taskRoleArn": "arn:aws:iam::your-account-id:role/your-task-role"
+  }
+  
